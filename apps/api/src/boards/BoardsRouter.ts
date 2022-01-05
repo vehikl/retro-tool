@@ -11,11 +11,7 @@ export const BOARDS_SINGULAR = '/boards/:id';
 
 const boardsController = new BoardsController();
 
-export const requiredBoardOwner = async (
-  req: ApiRequest,
-  Response: Response,
-  next: NextFunction,
-) => {
+export const requiredBoardOwner = async (req: ApiRequest, Response: Response, next: NextFunction) => {
   const { id } = req.params;
   const { id: userId } = req.user as User;
   const board = await prisma.board.findFirst({ where: { id } });
@@ -25,11 +21,7 @@ export const requiredBoardOwner = async (
   next();
 };
 
-const userHasAccess = async (
-  req: ApiRequest,
-  Response: Response,
-  next: NextFunction,
-) => {
+const userHasAccess = async (req: ApiRequest, Response: Response, next: NextFunction) => {
   const { id } = req.params;
   const { id: userId } = req.user as User;
 
@@ -44,34 +36,15 @@ const userHasAccess = async (
   next();
 };
 
-BoardsRouter.get(BOARDS_ROOT, [
-  authenticatedMiddleware,
-  boardsController.index,
-]);
-BoardsRouter.post(BOARDS_ROOT, [
-  authenticatedMiddleware,
-  boardsController.create,
-]);
-BoardsRouter.get(BOARDS_SINGULAR, [
-  authenticatedMiddleware,
-  userHasAccess,
-  boardsController.fetch,
-]);
-BoardsRouter.patch(BOARDS_SINGULAR, [
-  authenticatedMiddleware,
-  requiredBoardOwner,
-  boardsController.update,
-]);
+BoardsRouter.get(BOARDS_ROOT, [authenticatedMiddleware, boardsController.index]);
+BoardsRouter.post(BOARDS_ROOT, [authenticatedMiddleware, boardsController.create]);
+BoardsRouter.get(BOARDS_SINGULAR, [authenticatedMiddleware, userHasAccess, boardsController.fetch]);
+BoardsRouter.patch(BOARDS_SINGULAR, [authenticatedMiddleware, requiredBoardOwner, boardsController.update]);
 
-BoardsRouter.delete(BOARDS_SINGULAR, [
-  authenticatedMiddleware,
-  requiredBoardOwner,
-  boardsController.destroy,
-]);
+BoardsRouter.delete(BOARDS_SINGULAR, [authenticatedMiddleware, requiredBoardOwner, boardsController.destroy]);
 
-BoardsRouter.post("/boards/:id/timers", [
-  authenticatedMiddleware,
-  boardsController.timers
-])
+BoardsRouter.post('/boards/:id/timers', [authenticatedMiddleware, boardsController.timers]);
+
+BoardsRouter.post('/boards/:id/transfer', [authenticatedMiddleware, boardsController.transfer]);
 
 export { BoardsRouter };

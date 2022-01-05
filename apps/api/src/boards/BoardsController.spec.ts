@@ -1,11 +1,7 @@
 import { BOARDS_ROOT, BOARDS_SINGULAR } from './BoardsRouter';
 import { prisma } from '../prismaClient';
 import generatePath from '../utils/generatePath';
-import {
-  BOARD_UPDATED_EVENT_NAME,
-  PausedState,
-  StartState,
-} from '@retro-tool/api-interfaces';
+import { BOARD_UPDATED_EVENT_NAME, PausedState, StartState } from '@retro-tool/api-interfaces';
 import { TestCase } from '../utils/TestCase';
 import { User } from '@prisma/client';
 import dependencies from '../dependencies';
@@ -44,9 +40,7 @@ describe('BoardsController', () => {
       },
     });
 
-    const response = await TestCase.make()
-      .actingAs(user)
-      .get(`/boards/${board.id}`);
+    const response = await TestCase.make().actingAs(user).get(`/boards/${board.id}`);
 
     expect(response.status).toEqual(200);
     expect(response.body.board).toEqual(
@@ -61,9 +55,7 @@ describe('BoardsController', () => {
       data: { title: 'testTitle', ownerId: user.id },
     });
 
-    const response = await TestCase.make()
-      .actingAs(user)
-      .get(`/boards/${board.id}`);
+    const response = await TestCase.make().actingAs(user).get(`/boards/${board.id}`);
 
     expect(response.status).toEqual(500);
   });
@@ -77,27 +69,16 @@ describe('BoardsController', () => {
       },
     });
 
-    const response = await TestCase.make()
-      .actingAs(user)
-      .get(BOARDS_ROOT)
-      .expect(200);
+    const response = await TestCase.make().actingAs(user).get(BOARDS_ROOT).expect(200);
     expect(response.body).toEqual({
-      boards: expect.arrayContaining([
-        expect.objectContaining({ id: board.id }),
-      ]),
+      boards: expect.arrayContaining([expect.objectContaining({ id: board.id })]),
     });
   });
 
   it('creates a board', async () => {
-    const response = await TestCase.make()
-      .actingAs(user)
-      .post(BOARDS_ROOT)
-      .send(testBoard)
-      .expect(200);
+    const response = await TestCase.make().actingAs(user).post(BOARDS_ROOT).send(testBoard).expect(200);
 
-    expect(response.body.board).toEqual(
-      expect.objectContaining({ title: 'test board' }),
-    );
+    expect(response.body.board).toEqual(expect.objectContaining({ title: 'test board' }));
   });
 
   it('updates a board', async () => {
@@ -116,9 +97,7 @@ describe('BoardsController', () => {
       .send(newTitle);
 
     expect(response.body.board).toEqual(expect.objectContaining(newTitle));
-    expect(await prisma.board.findFirst({ where: { id: board.id } })).toEqual(
-      expect.objectContaining(newTitle),
-    );
+    expect(await prisma.board.findFirst({ where: { id: board.id } })).toEqual(expect.objectContaining(newTitle));
     expect(mockSendEventToBoard).toHaveBeenCalledWith(board.id, {
       type: BOARD_UPDATED_EVENT_NAME,
       payload: expect.objectContaining(newTitle),
@@ -166,19 +145,14 @@ describe('BoardsController', () => {
       },
     };
 
-    const response = await TestCase.make()
-      .actingAs(user)
-      .post(`/boards/${board.id}/timers`)
-      .send({ timer });
+    const response = await TestCase.make().actingAs(user).post(`/boards/${board.id}/timers`).send({ timer });
 
     expect(response.status).toEqual(200);
     expect(mockSendEventToBoard).toHaveBeenCalledWith(board.id, {
       type: BOARD_UPDATED_EVENT_NAME,
       payload: expect.objectContaining({ timer: timer }),
     });
-    expect(
-      (await prisma.board.findFirst({ where: { id: board.id } })).timer,
-    ).toEqual(timer);
+    expect((await prisma.board.findFirst({ where: { id: board.id } })).timer).toEqual(timer);
   });
 
   it('pauses a boards timer', async () => {
@@ -216,9 +190,7 @@ describe('BoardsController', () => {
       type: BOARD_UPDATED_EVENT_NAME,
       payload: expect.objectContaining({ timer: pausedTimer }),
     });
-    expect(
-      (await prisma.board.findFirst({ where: { id: board.id } })).timer,
-    ).toEqual(pausedTimer);
+    expect((await prisma.board.findFirst({ where: { id: board.id } })).timer).toEqual(pausedTimer);
   });
 
   it('returns an error if you start a timer after it has already started', async () => {
@@ -254,6 +226,33 @@ describe('BoardsController', () => {
       .send({ timer: startTimer });
 
     expect(response.status).toEqual(400);
+  });
+
+  it('transfers ownership', async () => {
+    const board = await prisma.board.create({
+      data: {
+        title: 'Random Name',
+        ownerId: user.id,
+      },
+    });
+
+    const secondUser = await prisma.user.create({
+      data: {
+        email: 'secondUser@email.com',
+        githubNickname: 'secondUser',
+        avatar: 'test-avatar',
+      },
+    });
+
+    const response = await TestCase.make()
+      .actingAs(user)
+      .post(`/boards/${board.id}/transfer`)
+      .send({ githubNickname: secondUser.githubNickname });
+
+    console.log(response.body);
+
+    expect(response.status).toEqual(200);
+    expect((await prisma.board.findFirst({ where: { id: board.id } })).ownerId).toEqual(secondUser.id);
   });
 
   afterEach(async () => {

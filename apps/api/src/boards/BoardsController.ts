@@ -1,11 +1,7 @@
 import { User } from '@prisma/client';
 import { Response } from 'express';
 import { prisma } from '../prismaClient';
-import {
-  BOARD_UPDATED_EVENT_NAME,
-  PausedState,
-  StartState,
-} from '@retro-tool/api-interfaces';
+import { BOARD_UPDATED_EVENT_NAME, PausedState, StartState } from '@retro-tool/api-interfaces';
 import dependencies from '../dependencies';
 import { v4 as uuid } from 'uuid';
 import { BoardRepository } from './BoardRepository';
@@ -13,6 +9,7 @@ import { BoardResource } from './BoardResource';
 import { ApiRequest } from '../types/ApiRequest';
 import { ApiError } from '../errors/ApiError';
 import { UserRepository } from '../users/UserRepository';
+import { AuthenticationError } from '../errors/AuthenticationError';
 
 const boardRepository = new BoardRepository();
 const boardResource = new BoardResource();
@@ -110,6 +107,24 @@ export class BoardsController {
     }
 
     await boardRepository.updateTimerState(req.params.id, state);
+
+    return res.json({});
+  }
+
+  async transfer(req: ApiRequest, res: Response) {
+    const board = await boardRepository.findById(req.params.id);
+
+    if (!board || board.ownerId !== req.user.id) {
+      throw new AuthenticationError();
+    }
+
+    const transferUser = await prisma.user.findUnique({ where: { githubNickname: req.body.githubNickname } });
+
+    if (!transferUser) {
+      throw new AuthenticationError();
+    }
+
+    await boardRepository.update(board.id, { ownerId: transferUser.id });
 
     return res.json({});
   }
