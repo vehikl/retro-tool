@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 
 export type FormControlProps = {
   isRequired?: boolean;
-  name: string;
+  name?: string;
   label: string;
   errors?: string[] | string;
   className?: string;
@@ -11,17 +11,11 @@ export type FormControlProps = {
 };
 
 export function FormControl(props: FormControlProps) {
-  const normalizedErrors =
-    props.errors == null || Array.isArray(props.errors)
-      ? props.errors
-      : [props.errors];
+  const normalizedErrors = props.errors == null || Array.isArray(props.errors) ? props.errors : [props.errors];
   return (
     <div className={props.className}>
       <div className="flex justify-between">
-        <label
-          htmlFor={props.name}
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor={props.name} className="block text-sm font-medium text-gray-700">
           {props.label}
         </label>
         {props.hint && (

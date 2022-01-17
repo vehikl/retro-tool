@@ -23,9 +23,7 @@ type CreateBoardArgs = {
 };
 
 export const useCreateBoard = () => {
-  const { mutateAsync, isLoading } = useMutation((params: CreateBoardArgs) =>
-    apiClient.post('/boards', params),
-  );
+  const { mutateAsync, isLoading } = useMutation((params: CreateBoardArgs) => apiClient.post('/boards', params));
   return {
     createBoard: mutateAsync,
     createBoardLoading: isLoading,
@@ -70,5 +68,19 @@ export const useDeleteBoard = () => {
   return {
     deleteBoard: mutateAsync,
     deleteBoardLoading: isLoading,
+  };
+};
+
+type TransferOwnership = {
+  githubNickname: string;
+};
+
+export const useTransferBoardOwnership = (boardId: string) => {
+  const { mutateAsync, isLoading } = useMutation((params: TransferOwnership) =>
+    apiClient.post(`/boards/${boardId}/transfer`, params),
+  );
+  return {
+    transferOwnership: mutateAsync,
+    transferOwnershipLoading: isLoading,
   };
 };

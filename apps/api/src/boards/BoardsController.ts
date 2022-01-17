@@ -121,7 +121,7 @@ export class BoardsController {
     const transferUser = await prisma.user.findUnique({ where: { githubNickname: req.body.githubNickname } });
 
     if (!transferUser) {
-      throw new AuthenticationError();
+      throw new AuthenticationError('User not found.');
     }
 
     await boardRepository.update(board.id, { ownerId: transferUser.id });
