@@ -72,7 +72,7 @@ describe('AuthController', () => {
   });
 
   describe('impersonate', function () {
-    it.only('will fail if user is not an admin', async () => {
+    it('will fail if user is not an admin', async () => {
       const user = await prisma.user.create({
         data: {
           email: 'testuser@test.com',
