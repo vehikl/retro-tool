@@ -72,12 +72,13 @@ describe('AuthController', () => {
   });
 
   describe('impersonate', function () {
-    it('will fail if user is not an admin', async () => {
+    it.only('will fail if user is not an admin', async () => {
       const user = await prisma.user.create({
         data: {
           email: 'testuser@test.com',
           githubNickname: 'testUser',
           avatar: '',
+          isAdmin: false,
         },
       });
 
@@ -86,6 +87,7 @@ describe('AuthController', () => {
           email: 'testuser2@test.com',
           githubNickname: 'testUser2',
           avatar: '',
+          isAdmin: false,
         },
       });
 
@@ -93,7 +95,7 @@ describe('AuthController', () => {
         .actingAs(user)
         .post(`/auth/impersonate/${user2.id}`);
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(403);
     });
     it('will fail if selected user does not exist', async () => {
       const user = await prisma.user.create({

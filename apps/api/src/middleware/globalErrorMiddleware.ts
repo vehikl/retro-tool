@@ -4,6 +4,7 @@ import { ApiRequest } from '../types/ApiRequest';
 import {ApiError} from "../errors/ApiError";
 import {AuthenticationError} from "../errors/AuthenticationError";
 import {Analytics} from "../utils/Analytics";
+import { ForbiddenError } from '../errors/ForbiddenError';
 
 export const buildError = (type: string, error: Error) => {
   const response: any = {
@@ -26,6 +27,8 @@ export default function globalErrorMiddleware(
   switch(err.constructor.name){
     case AuthenticationError.name:
       return res.status(401).json(buildError('unauthorized', err));
+    case ForbiddenError.name:
+      return res.status(403).json(buildError('forbidden', err));
     case NotFoundError.name:
       return res.status(404).json(buildError('not-found', err));
     case ApiError.name:
