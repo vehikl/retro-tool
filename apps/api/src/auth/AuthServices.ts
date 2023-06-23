@@ -2,6 +2,7 @@ import { prisma } from '../prismaClient';
 import { ApiRequest } from '../types/ApiRequest';
 import { NextFunction, Response } from 'express';
 import { AuthenticationError } from '../errors/AuthenticationError';
+import { ForbiddenError } from '../errors/ForbiddenError';
 
 export const githubStrategyCallback = async (_accessToken, _refreshToken, profile, done) => {
   try {
@@ -26,7 +27,7 @@ export const githubStrategyCallback = async (_accessToken, _refreshToken, profil
 
 export const isAdminMiddleware = (req: ApiRequest, res: Response, next: NextFunction) => {
   if (!req.user || !req.user?.isAdmin) {
-    throw new AuthenticationError('The user does not have the required permissions.');
+    throw new ForbiddenError('The user does not have the required permissions.');
   }
   next();
 };
