@@ -27,7 +27,7 @@ jobs:
         run: yarn lint api
       - name: Test
         env:
-          TEST_DATABASE_URL: 'postgresql://user:password@localhost:5434/database?schema=public'
+          TEST_DATABASE_URL: 'postgresql://user:password@localhost:${{ job.services.postgres.ports[5432] }}/database?schema=public'
         run: yarn test:api --codeCoverage --verbose
       - uses: codecov/codecov-action@v2
         with:
@@ -41,7 +41,7 @@ jobs:
           POSTGRES_USER: user
           POSTGRES_DB: database
         ports:
-          - 5434
+          - 5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
