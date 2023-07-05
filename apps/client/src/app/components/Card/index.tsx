@@ -112,7 +112,6 @@ function Counter({ value }: CounterProps) {
     const controls = animate(current, value, {
       duration: 2,
       onUpdate(newValue) {
-        console.log(newValue);
         node.textContent = newValue.toFixed(0) ?? '0';
       },
       onComplete() {

@@ -1,7 +1,5 @@
-import { Board, Card, Column, User } from '@prisma/client';
+import { ActionItem, Board, Card, Column, User } from '@prisma/client';
 import { QueryClient } from '@tanstack/react-query';
-
-const NL = '\n';
 
 type CardWithOwner = Card & {
   owner: User;
@@ -55,6 +53,14 @@ export class BoardToMarkdown {
         }
       }
     }
+
+    const actionItems =
+      this.queryClient.getQueryData<ActionItem[]>(['actionItems', {boardId: this.boardId}]) ?? [];
+
+    this.append("## Action Items")
+    actionItems.forEach((actionItem: ActionItem) => {
+      this.append(actionItem.value);
+    });
 
     return this.result;
   }
