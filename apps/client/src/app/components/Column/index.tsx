@@ -110,6 +110,7 @@ export default function Column({ column, board, title, index }: ColumnProps) {
   const { cards } = useCards(column.id);
   const { createCard } = useCreateCard(column.id);
   const newCardRef = useRef<HTMLTextAreaElement>(null);
+  const editColumnTitleInputRef = useRef<HTMLInputElement>(null);
   const { isBoardOwner } = useBoardState();
   const { publishCards } = usePublishCards(column.id);
   const [draftMode, setDraftMode] = useState(false);
@@ -148,6 +149,13 @@ export default function Column({ column, board, title, index }: ColumnProps) {
     return editColumnAsync({ columnId: column.id, title: value });
   }
 
+  const focusEditInput = () => {
+    // this timeout is a workaround for the Chakra menu stealing focus from the input (https://github.com/chakra-ui/chakra-ui/issues/2111)
+    setTimeout(() => {
+      editColumnTitleInputRef?.current?.focus()
+    }, 100)
+  }
+
   const onInputKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (!e.shiftKey && e.code === 'Enter') {
       e.preventDefault();
@@ -164,6 +172,10 @@ export default function Column({ column, board, title, index }: ColumnProps) {
           action: () => deleteColumn(column.id),
         }
         : null,
+      {
+        title: 'Edit Column',
+        action: () => focusEditInput()
+      }
     ].filter((a) => a != null) as ActionMenuItem[];
   }, [column.id, deleteColumn, isBoardOwner]);
 
@@ -187,7 +199,7 @@ export default function Column({ column, board, title, index }: ColumnProps) {
             className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded p-2 px-4"
             {...provided.dragHandleProps}
           >
-            <ColumnTitleInput defaultValue={column.title} onBlur={editColumn} />
+            <ColumnTitleInput ref={editColumnTitleInputRef} defaultValue={column.title} onBlur={editColumn} />
             <div className="flex items-center">
               {hasDraftCards && (
                 <button
