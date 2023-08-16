@@ -34,10 +34,24 @@ type DeleteColumnParams = {
   columnId: string;
 };
 
+type EditColumnParams = {
+  columnId: string;
+  title: string;
+};
+
 export const useDeleteColumn = () => {
   const { board } = useBoardState();
   return useMutation(({ columnId }: DeleteColumnParams) =>
     apiClient.delete(`/boards/${board?.id}/columns/${columnId}`),
+  );
+};
+
+export const useEditColumn = () => {
+  const { board } = useBoardState();
+  return useMutation(({ columnId, title }: EditColumnParams) =>
+    apiClient.patch(`/boards/${board?.id}/columns/${columnId}`, {
+      title
+    }),
   );
 };
 
