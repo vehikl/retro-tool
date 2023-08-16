@@ -143,6 +143,11 @@ export default function Column({ column, board, title, index }: ColumnProps) {
     });
   };
 
+  const editColumn = (value: string) => {
+    if (value === column.title || value === '') return;
+    return editColumnAsync({ columnId: column.id, title: value });
+  }
+
   const onInputKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (!e.shiftKey && e.code === 'Enter') {
       e.preventDefault();
@@ -182,7 +187,7 @@ export default function Column({ column, board, title, index }: ColumnProps) {
             className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded p-2 px-4"
             {...provided.dragHandleProps}
           >
-            <ColumnTitleInput defaultValue={column.title} onBlur={(value) => editColumnAsync({ columnId: column.id, title: value })} />
+            <ColumnTitleInput defaultValue={column.title} onBlur={editColumn} />
             <div className="flex items-center">
               {hasDraftCards && (
                 <button
