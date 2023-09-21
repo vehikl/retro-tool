@@ -1,6 +1,7 @@
 import {BoardToMarkdown} from "./BoardToMarkdown";
 import {QueryClient} from "@tanstack/react-query";
 import {ActionItem, Board} from "@prisma/client";
+import moment from 'moment';
 
 
 jest.mock("@tanstack/react-query");
@@ -34,6 +35,7 @@ describe("BoardToMarkdown", () => {
     const result = (new BoardToMarkdown(queryClient, board.id)).build();
 
     expect(result).toContain(actionItem.value);
+    expect(result).toContain(moment(board.createdAt).format('YYYY/MM/DD'));
     expect(queryClient.getQueryData).toHaveBeenCalledWith(['actionItems', { boardId: board.id }])
   });
 })
