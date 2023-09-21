@@ -1,5 +1,6 @@
 import { ActionItem, Board, Card, Column, User } from '@prisma/client';
 import { QueryClient } from '@tanstack/react-query';
+import moment from "moment";
 
 type CardWithOwner = Card & {
   owner: User;
@@ -32,7 +33,7 @@ export class BoardToMarkdown {
     const board = this.queryClient.getQueryData<Board>(['board', this.boardId]);
     if (!board) return this.result;
 
-    this.append(`# ${board.title}\n`);
+    this.append(`# ${moment(board.createdAt).format('YYYY/MM/DD')} - ${board.title}\n`);
 
     const columns =
       this.queryClient.getQueryData<Column[]>(['columns', this.boardId]) ?? [];
