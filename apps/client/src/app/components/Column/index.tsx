@@ -9,7 +9,7 @@ import {
 } from 'react-beautiful-dnd';
 import { useBoard } from '../../hooks/boards';
 import { useDialogs } from '../../dialog-manager';
-import { useDeleteColumn } from '../../hooks/columns';
+import { useDeleteColumn, useEditColumn } from '../../hooks/columns';
 import { useCards, useCreateCard, usePublishCards } from '../../hooks/cards';
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Card } from '../Card';
@@ -21,6 +21,7 @@ import ActionMenu, { ActionMenuItem } from '../ActionMenu';
 import orderBy from 'lodash/orderBy';
 import { Switch } from '@headlessui/react';
 import { Tooltip } from '../Tooltip';
+import { ColumnTitleInput } from './ColumnTitleInput';
 
 type ColumnProps = {
   column: ColumnType;
@@ -103,11 +104,13 @@ export function CardList({ cards, column, listType, listId, name }: CardsListPro
 
 export default function Column({ column, board, title, index }: ColumnProps) {
   const { mutateAsync: deleteColumnAsync } = useDeleteColumn();
+  const { mutateAsync: editColumnAsync } = useEditColumn();
   const { openDialog } = useDialogs();
   const { refetch } = useBoard(board.id);
   const { cards } = useCards(column.id);
   const { createCard } = useCreateCard(column.id);
   const newCardRef = useRef<HTMLTextAreaElement>(null);
+  const editColumnTitleInputRef = useRef<HTMLInputElement>(null);
   const { isBoardOwner } = useBoardState();
   const { publishCards } = usePublishCards(column.id);
   const [draftMode, setDraftMode] = useState(false);
@@ -137,9 +140,21 @@ export default function Column({ column, board, title, index }: ColumnProps) {
         await refetch();
       },
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      onCancel: () => {},
+      onCancel: () => { },
     });
   };
+
+  const editColumn = (value: string) => {
+    if (value === column.title || value === '') return;
+    return editColumnAsync({ columnId: column.id, title: value });
+  }
+
+  const focusEditInput = () => {
+    // this timeout is a workaround for the Chakra menu stealing focus from the input (https://github.com/chakra-ui/chakra-ui/issues/2111)
+    setTimeout(() => {
+      editColumnTitleInputRef?.current?.focus()
+    }, 100)
+  }
 
   const onInputKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (!e.shiftKey && e.code === 'Enter') {
@@ -153,10 +168,14 @@ export default function Column({ column, board, title, index }: ColumnProps) {
     return [
       isBoardOwner
         ? {
-            title: 'Delete Column',
-            action: () => deleteColumn(column.id),
-          }
+          title: 'Delete Column',
+          action: () => deleteColumn(column.id),
+        }
         : null,
+      {
+        title: 'Edit Column',
+        action: () => focusEditInput()
+      }
     ].filter((a) => a != null) as ActionMenuItem[];
   }, [column.id, deleteColumn, isBoardOwner]);
 
@@ -180,7 +199,7 @@ export default function Column({ column, board, title, index }: ColumnProps) {
             className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded p-2 px-4"
             {...provided.dragHandleProps}
           >
-            <p className="text-lg leading-6 font-medium text-gray-900 dark:text-white">{column.title}</p>
+            <ColumnTitleInput ref={editColumnTitleInputRef} defaultValue={column.title} onBlur={editColumn} />
             <div className="flex items-center">
               {hasDraftCards && (
                 <button
